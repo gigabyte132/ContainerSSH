@@ -732,7 +732,7 @@ type AuthKerberosClientConfig struct {
 	//
 	// WARNING: If authorization is unset and this is set to false all
 	// authenticated users can log in to any account!
-	EnforceUsername bool `json:"enforceUsername" yaml:"enforceUsername" default:"true"`
+	EnforceUsername bool `json:"enforceUsername" yaml:"enforceUsername" default:"false"`
 	// CredentialCachePath is the path in which the kerberos credentials
 	// will be written inside the user containers.
 	CredentialCachePath string `json:"credentialCachePath" yaml:"credentialCachePath" default:"/tmp/krb5cc"`
