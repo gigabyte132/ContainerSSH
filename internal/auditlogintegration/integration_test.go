@@ -204,6 +204,11 @@ type backendHandler struct {
 	session sshserver.SessionChannel
 }
 
+// OnRequestAgentForward implements sshserver.SSHConnectionHandler.
+func (b *backendHandler) OnRequestAgentForward(channelID uint64) (channel sshserver.ForwardChannel, failureReason sshserver.ChannelRejection) {
+	panic("unimplemented")
+}
+
 func (b *backendHandler) OnAuthKeyboardInteractive(
 	meta metadata.ConnectionAuthPendingMetadata,
 	challenge func(

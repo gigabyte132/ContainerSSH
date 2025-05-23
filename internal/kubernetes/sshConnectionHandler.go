@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 
-    "go.containerssh.io/containerssh/config"
-    "go.containerssh.io/containerssh/internal/agentforward"
-    "go.containerssh.io/containerssh/internal/sshserver"
-    "go.containerssh.io/containerssh/message"
-    "go.containerssh.io/containerssh/metadata"
+	"go.containerssh.io/containerssh/config"
+	"go.containerssh.io/containerssh/internal/agentforward"
+	"go.containerssh.io/containerssh/internal/sshserver"
+	"go.containerssh.io/containerssh/message"
+	"go.containerssh.io/containerssh/metadata"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -129,6 +129,30 @@ func (s *sshConnectionHandler) OnRequestCancelStreamLocal(
 	return s.agentForward.CancelStreamLocalForwarding(path)
 }
 
+func (s *sshConnectionHandler) OnRequestAgentForward(
+	channelID uint64,
+) (channel sshserver.ForwardChannel, failureReason sshserver.ChannelRejection) {
+	containerAgentSocket := "/tmp/ssh-agent.sock"
+
+	channel, err := s.agentForward.NewForwardUnix(
+		s.setupAgent,
+		s.networkHandler.logger,
+		containerAgentSocket,
+	)
+	if err != nil {
+		return nil, sshserver.NewChannelRejection(
+			ssh.ConnectionFailed,
+			message.EKubernetesForwardingFailed,
+			"Error setting up SSH agent forwarding",
+			"Error setting up SSH agent forwarding",
+		)
+	}
+
+	s.env["SSH_AUTH_SOCK"] = containerAgentSocket
+
+	return channel, nil
+}
+
 func (c *sshConnectionHandler) setupAgent() (io.Reader, io.Writer, error) {
 	ctx, cancelFunc := context.WithTimeout(
 		context.Background(),
@@ -136,7 +160,7 @@ func (c *sshConnectionHandler) setupAgent() (io.Reader, io.Writer, error) {
 	)
 	defer cancelFunc()
 
-	if c.networkHandler.config.Pod.Mode == config.KubernetesExecutionModeConnection {
+	if c.networkHandler.config.Pod.Mode == config.KubernetesExecutionModeConnection || c.networkHandler.config.Pod.Mode == config.KubernetesExecutionModePersistent {
 		agent := []string{c.networkHandler.config.Pod.AgentPath, "forward-server"}
 		exec, err := c.networkHandler.pod.createExec(ctx, agent, c.env, false)
 		if err != nil {

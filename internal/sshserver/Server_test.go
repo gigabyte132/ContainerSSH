@@ -13,16 +13,16 @@ import (
 	"testing"
 	"time"
 
-    "go.containerssh.io/containerssh/auth"
-    "go.containerssh.io/containerssh/config"
-    "go.containerssh.io/containerssh/internal/sshserver"
-    "go.containerssh.io/containerssh/internal/structutils"
-    "go.containerssh.io/containerssh/internal/test"
-    "go.containerssh.io/containerssh/log"
-    "go.containerssh.io/containerssh/metadata"
-    "go.containerssh.io/containerssh/message"
-    "go.containerssh.io/containerssh/service"
 	"github.com/stretchr/testify/assert"
+	"go.containerssh.io/containerssh/auth"
+	"go.containerssh.io/containerssh/config"
+	"go.containerssh.io/containerssh/internal/sshserver"
+	"go.containerssh.io/containerssh/internal/structutils"
+	"go.containerssh.io/containerssh/internal/test"
+	"go.containerssh.io/containerssh/log"
+	"go.containerssh.io/containerssh/message"
+	"go.containerssh.io/containerssh/metadata"
+	"go.containerssh.io/containerssh/service"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -714,6 +714,35 @@ type fullSSHConnectionHandler struct {
 	sshserver.AbstractSSHConnectionHandler
 
 	handler *fullHandler
+}
+
+// OnFailedDecodeGlobalRequest implements sshserver.SSHConnectionHandler.
+// Subtle: this method shadows the method (AbstractSSHConnectionHandler).OnFailedDecodeGlobalRequest of fullSSHConnectionHandler.AbstractSSHConnectionHandler.
+func (f *fullSSHConnectionHandler) OnFailedDecodeGlobalRequest(requestID uint64, requestType string, payload []byte, reason error) {
+	panic("unimplemented")
+}
+
+// OnRequestAgentForward implements sshserver.SSHConnectionHandler.
+func (f *fullSSHConnectionHandler) OnRequestAgentForward(channelID uint64) (channel sshserver.ForwardChannel, failureReason sshserver.ChannelRejection) {
+	panic("unimplemented")
+}
+
+// OnShutdown implements sshserver.SSHConnectionHandler.
+// Subtle: this method shadows the method (AbstractSSHConnectionHandler).OnShutdown of fullSSHConnectionHandler.AbstractSSHConnectionHandler.
+func (f *fullSSHConnectionHandler) OnShutdown(shutdownContext context.Context) {
+	panic("unimplemented")
+}
+
+// OnUnsupportedChannel implements sshserver.SSHConnectionHandler.
+// Subtle: this method shadows the method (AbstractSSHConnectionHandler).OnUnsupportedChannel of fullSSHConnectionHandler.AbstractSSHConnectionHandler.
+func (f *fullSSHConnectionHandler) OnUnsupportedChannel(channelID uint64, channelType string, extraData []byte) {
+	panic("unimplemented")
+}
+
+// OnUnsupportedGlobalRequest implements sshserver.SSHConnectionHandler.
+// Subtle: this method shadows the method (AbstractSSHConnectionHandler).OnUnsupportedGlobalRequest of fullSSHConnectionHandler.AbstractSSHConnectionHandler.
+func (f *fullSSHConnectionHandler) OnUnsupportedGlobalRequest(requestID uint64, requestType string, payload []byte) {
+	panic("unimplemented")
 }
 
 func (f *fullSSHConnectionHandler) OnSessionChannel(

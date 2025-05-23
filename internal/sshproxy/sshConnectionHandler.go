@@ -6,11 +6,11 @@ import (
 	"io"
 	"sync"
 
-    ssh2 "go.containerssh.io/containerssh/internal/ssh"
-    "go.containerssh.io/containerssh/internal/sshserver"
-    "go.containerssh.io/containerssh/log"
-    "go.containerssh.io/containerssh/message"
-    "go.containerssh.io/containerssh/metadata"
+	ssh2 "go.containerssh.io/containerssh/internal/ssh"
+	"go.containerssh.io/containerssh/internal/sshserver"
+	"go.containerssh.io/containerssh/log"
+	"go.containerssh.io/containerssh/message"
+	"go.containerssh.io/containerssh/metadata"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -462,4 +462,53 @@ func (s *sshConnectionHandler) OnRequestCancelStreamLocal(
 }
 
 func (s *sshConnectionHandler) OnShutdown(_ context.Context) {
+}
+
+func (s *sshConnectionHandler) OnRequestAgentForward(
+	channelID uint64,
+) (channel sshserver.ForwardChannel, failureReason sshserver.ChannelRejection) {
+	s.networkHandler.lock.Lock()
+	if s.networkHandler.done {
+		s.networkHandler.lock.Unlock()
+		failureReason = sshserver.NewChannelRejection(
+			ssh.ConnectionFailed,
+			message.ESSHProxyShuttingDown,
+			"Cannot open SSH agent forward.",
+			"Rejected SSH agent forwarding because connection is closing.",
+		)
+		s.logger.Debug(failureReason)
+		return nil, failureReason
+	}
+	s.networkHandler.wg.Add(1)
+	s.networkHandler.lock.Unlock()
+
+	s.logger.Debug(message.NewMessage(message.MSSHProxyForward, "Opening SSH agent forwarding connection on SSH backend..."))
+
+	backingChannel, req, err := s.sshConn.OpenChannel("auth-agent@openssh.com", nil)
+	if err != nil {
+		realErr := &ssh.OpenChannelError{}
+		if errors.As(err, &realErr) {
+			failureReason = sshserver.NewChannelRejection(
+				realErr.Reason,
+				message.ESSHProxyBackendForwardFailed,
+				realErr.Message,
+				"Backend rejected SSH agent forwarding with message: %s",
+				realErr.Message,
+			)
+		} else {
+			failureReason = sshserver.NewChannelRejection(
+				ssh.ConnectionFailed,
+				message.ESSHProxyBackendForwardFailed,
+				"Cannot open SSH agent forwarding.",
+				"Backend rejected SSH agent forwarding with message: %s",
+				err.Error(),
+			)
+		}
+		s.networkHandler.wg.Done()
+		s.logger.Debug(failureReason)
+		return nil, failureReason
+	}
+	go s.rejectAllRequests(req)
+
+	return backingChannel, nil
 }

@@ -74,6 +74,17 @@ func (s *testSSHHandler) OnRequestCancelStreamLocal(
 	return fmt.Errorf("Unimplemented")
 }
 
+func (s *testSSHHandler) OnRequestAgentForward(
+	channelID uint64,
+) (channel ForwardChannel, failureReason ChannelRejection) {
+	return nil, NewChannelRejection(
+		ssh.Prohibited,
+		message2.ESSHNotImplemented,
+		"SSH agent forwarding unimplemented",
+		"SSH agent forwarding unimplemented",
+	)
+}
+
 func (t *testSSHHandler) OnShutdown(_ context.Context) {
 	t.shutdown = true
 }

@@ -138,6 +138,11 @@ type dummyBackendHandler struct {
 	authResponse sshserver.AuthResponse
 }
 
+// OnRequestAgentForward implements sshserver.SSHConnectionHandler.
+func (d *dummyBackendHandler) OnRequestAgentForward(channelID uint64) (channel sshserver.ForwardChannel, failureReason sshserver.ChannelRejection) {
+	panic("unimplemented")
+}
+
 func (d *dummyBackendHandler) OnClose() {
 }
 

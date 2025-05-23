@@ -105,6 +105,10 @@ type dummySSHBackend struct {
 	exitChannel chan struct{}
 }
 
+func (d *dummySSHBackend) OnRequestAgentForward(channelID uint64) (sshserver.ForwardChannel, sshserver.ChannelRejection) {
+	return nil, sshserver.NewChannelRejection(ssh.Prohibited, message.ESSHNotImplemented, "Agent forwarding unimplemented in dummy backend", "Agent forwarding unimplemented in dummy backend")
+}
+
 func (d *dummySSHBackend) OnShutdown(_ context.Context) {
 	panic("implement me")
 }

@@ -144,6 +144,11 @@ type testBackend struct {
 	sshserver.AbstractNetworkConnectionHandler
 }
 
+// OnRequestAgentForward implements sshserver.SSHConnectionHandler.
+func (t *testBackend) OnRequestAgentForward(channelID uint64) (channel sshserver.ForwardChannel, failureReason sshserver.ChannelRejection) {
+	panic("unimplemented")
+}
+
 func (t *testBackend) OnUnsupportedGlobalRequest(_ uint64, _ string, _ []byte) {}
 
 func (b *testBackend) OnFailedDecodeGlobalRequest(_ uint64, _ string, _ []byte, _ error) {}

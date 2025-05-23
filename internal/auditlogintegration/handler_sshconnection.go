@@ -4,15 +4,20 @@ import (
 	"context"
 	"io"
 
-    "go.containerssh.io/containerssh/auditlog/message"
-    "go.containerssh.io/containerssh/internal/auditlog"
-    "go.containerssh.io/containerssh/internal/sshserver"
-    "go.containerssh.io/containerssh/metadata"
+	"go.containerssh.io/containerssh/auditlog/message"
+	"go.containerssh.io/containerssh/internal/auditlog"
+	"go.containerssh.io/containerssh/internal/sshserver"
+	"go.containerssh.io/containerssh/metadata"
 )
 
 type sshConnectionHandler struct {
 	backend sshserver.SSHConnectionHandler
 	audit   auditlog.Connection
+}
+
+// OnRequestAgentForward implements sshserver.SSHConnectionHandler.
+func (s *sshConnectionHandler) OnRequestAgentForward(channelID uint64) (channel sshserver.ForwardChannel, failureReason sshserver.ChannelRejection) {
+	panic("unimplemented")
 }
 
 func (s *sshConnectionHandler) OnShutdown(shutdownContext context.Context) {
